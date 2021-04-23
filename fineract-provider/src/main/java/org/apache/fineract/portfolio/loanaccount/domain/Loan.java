@@ -527,7 +527,8 @@ public class Loan extends AbstractPersistableCustom {
         // Add net get net disbursal amount from charges and principal
         this.netDisbursalAmount = this.approvedPrincipal;
         if (loanCharges != null && !loanCharges.isEmpty()) {
-            Set<LoanCharge> chargesAtDisbursal = loanCharges.stream().filter(charge -> charge.isDueAtDisbursement()).collect(Collectors.toSet());
+            Set<LoanCharge> chargesAtDisbursal = loanCharges.stream().filter(charge -> charge.isDueAtDisbursement())
+                    .collect(Collectors.toSet());
             for (LoanCharge charge : chargesAtDisbursal) {
                 this.netDisbursalAmount = this.netDisbursalAmount.subtract(charge.amount());
             }
