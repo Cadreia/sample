@@ -1381,7 +1381,6 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
             }
             this.loanScheduleAssembler.validateDisbursementDateWithMeetingDates(expectedDisbursementDate, calendar,
                     isSkipRepaymentOnFirstMonth, numberOfDays);
-
         }
 
         final Map<String, Object> changes = loan.loanApplicationApproval(currentUser, command, disbursementDataArray,
@@ -1391,6 +1390,15 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                 StatusEnum.APPROVE.getCode().longValue(), EntityTables.LOAN.getForeignKeyColumnNameOnDatatable(), loan.productId());
 
         if (!changes.isEmpty()) {
+            BigDecimal netDisbursalAmount = loan.getApprovedPrincipal();
+            final Set<LoanCharge> chargesAtDisbursal = loan.getLoanCharges().stream().filter(charge -> charge.isDueAtDisbursement())
+                    .collect(Collectors.toSet());
+            for (LoanCharge charge : chargesAtDisbursal) {
+                netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
+            }
+            if (netDisbursalAmount != null) {
+                loan.setNetDisbursalAmount(netDisbursalAmount);
+            }
 
             // If loan approved amount less than loan demanded amount, then need
             // to recompute the schedule
@@ -1423,15 +1431,7 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                     throw new GeneralPlatformDomainRuleException("error.msg.loan.amount.less.than.outstanding.of.loan.to.be.closed",
                             "Topup loan amount should be greater than outstanding amount of loan to be closed.");
                 }
-            }
-
-            BigDecimal netDisbursalAmount = loan.getApprovedPrincipal();
-            final Set<LoanCharge> chargesAtDisbursal = loan.getLoanCharges().stream().filter(charge -> charge.isDueAtDisbursement())
-                    .collect(Collectors.toSet());
-            for (LoanCharge charge : chargesAtDisbursal) {
-                netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
-            }
-            if (netDisbursalAmount != null) {
+                netDisbursalAmount = netDisbursalAmount.subtract(loanOutstanding);
                 loan.setNetDisbursalAmount(netDisbursalAmount);
             }
 

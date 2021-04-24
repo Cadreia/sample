@@ -400,10 +400,12 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         loan.validateAccountStatus(LoanEvent.LOAN_DISBURSED);
         boolean canDisburse = loan.canDisburse(actualDisbursementDate);
         ChangedTransactionDetail changedTransactionDetail = null;
+        Money amountToDisburse = null;
+
         if (canDisburse) {
 
             Money disburseAmount = loan.adjustDisburseAmount(command, actualDisbursementDate);
-            Money amountToDisburse = disburseAmount.copy();
+            amountToDisburse = disburseAmount.copy();
             boolean recalculateSchedule = amountBeforeAdjust.isNotEqualTo(loan.getPrincpal());
             final String txnExternalId = command.stringValueOfParameterNamedAllowingNull("externalId");
 
@@ -429,9 +431,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                     throw new GeneralPlatformDomainRuleException("error.msg.loan.amount.less.than.outstanding.of.loan.to.be.closed",
                             "Topup loan amount should be greater than outstanding amount of loan to be closed.");
                 }
-
                 amountToDisburse = disburseAmount.minus(loanOutstanding);
-
                 disburseLoanToLoan(loan, command, loanOutstanding);
             }
 
@@ -506,12 +506,21 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             this.accountTransfersWritePlatformService.transferFunds(accountTransferDTO);
         }
 
-        BigDecimal netDisbursalAmount = command.bigDecimalValueOfParameterNamed(LoanApiConstants.principalDisbursedParameterName);
         final Set<LoanCharge> chargesAtDisbursal = loan.getLoanCharges().stream().filter(charge -> charge.isDueAtDisbursement())
                 .collect(Collectors.toSet());
-        for (LoanCharge charge : chargesAtDisbursal) { netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
-        }
-        if (netDisbursalAmount != null) {
+        if (!loan.isTopup()) {
+            BigDecimal netDisbursalAmount = command.bigDecimalValueOfParameterNamed(LoanApiConstants.principalDisbursedParameterName);
+            for (LoanCharge charge : chargesAtDisbursal) {
+                netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
+            }
+            if (netDisbursalAmount != null) {
+                loan.setNetDisbursalAmount(netDisbursalAmount);
+            }
+        } else if (loan.isTopup() && !amountToDisburse.equals(null)) {
+            BigDecimal netDisbursalAmount = amountToDisburse.getAmount();
+            for (LoanCharge charge : chargesAtDisbursal) {
+                netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
+            }
             loan.setNetDisbursalAmount(netDisbursalAmount);
         }
 
