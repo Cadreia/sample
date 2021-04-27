@@ -510,18 +510,20 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                 .collect(Collectors.toSet());
         if (!loan.isTopup()) {
             BigDecimal netDisbursalAmount = command.bigDecimalValueOfParameterNamed(LoanApiConstants.principalDisbursedParameterName);
-            for (LoanCharge charge : chargesAtDisbursal) {
-                netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
-            }
             if (netDisbursalAmount != null) {
+                for (LoanCharge charge : chargesAtDisbursal) {
+                    netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
+                }
                 loan.setNetDisbursalAmount(netDisbursalAmount);
             }
         } else if (loan.isTopup() && !amountToDisburse.equals(null)) {
             BigDecimal netDisbursalAmount = amountToDisburse.getAmount();
-            for (LoanCharge charge : chargesAtDisbursal) {
-                netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
+            if (netDisbursalAmount != null) {
+                for (LoanCharge charge : chargesAtDisbursal) {
+                    netDisbursalAmount = netDisbursalAmount.subtract(charge.amount());
+                }
+                loan.setNetDisbursalAmount(netDisbursalAmount);
             }
-            loan.setNetDisbursalAmount(netDisbursalAmount);
         }
 
         updateRecurringCalendarDatesForInterestRecalculation(loan);
