@@ -862,7 +862,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private void validateCharge(Integer amountPercentage, final List<HashMap> loanCharges, final String amount, final String outstanding,
-                                String amountPaid, String amountWaived) {
+            String amountPaid, String amountWaived) {
         HashMap chargeDetail = getloanCharge(amountPercentage, loanCharges);
         Assertions.assertTrue(Float.valueOf(amount).compareTo(Float.valueOf(String.valueOf(chargeDetail.get("amountOrPercentage")))) == 0);
         Assertions.assertTrue(
@@ -872,7 +872,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private void validateChargeExcludePrecission(Integer amountPercentage, final List<HashMap> loanCharges, final String amount,
-                                                 final String outstanding, String amountPaid, String amountWaived) {
+            final String outstanding, String amountPaid, String amountWaived) {
         DecimalFormat twoDForm = new DecimalFormat("#");
         HashMap chargeDetail = getloanCharge(amountPercentage, loanCharges);
         Assertions.assertTrue(Float.valueOf(twoDForm.format(Float.valueOf(amount)))
@@ -936,7 +936,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer createLoanProduct(final String inMultiplesOf, final String digitsAfterDecimal, final String repaymentStrategy,
-                                      final String accountingRule, final Account... accounts) {
+            final String accountingRule, final Account... accounts) {
         LOG.info("------------------------------CREATING NEW LOAN PRODUCT ---------------------------------------");
         final String loanProductJSON = new LoanProductTestBuilder() //
                 .withPrincipal("10000000.00") //
@@ -972,7 +972,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer applyForLoanApplication(final Integer clientID, final Integer loanProductID, List<HashMap> charges,
-                                            final String savingsId, String principal) {
+            final String savingsId, String principal) {
         LOG.info("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
         final String loanApplicationJSON = new LoanApplicationTestBuilder() //
                 .withPrincipal(principal) //
@@ -992,7 +992,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer applyForLoanApplicationWithTranches(final Integer clientID, final Integer loanProductID, List<HashMap> charges,
-                                                        final String savingsId, String principal, List<HashMap> tranches) {
+            final String savingsId, String principal, List<HashMap> tranches) {
         LOG.info("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
         final String loanApplicationJSON = new LoanApplicationTestBuilder() //
                 .withPrincipal(principal) //
@@ -1033,7 +1033,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer applyForLoanApplicationWithPaymentStrategy(final Integer clientID, final Integer loanProductID, List<HashMap> charges,
-                                                               final String savingsId, String principal, final String repaymentStrategy) {
+            final String savingsId, String principal, final String repaymentStrategy) {
         LOG.info("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
         final String loanApplicationJSON = new LoanApplicationTestBuilder() //
                 .withPrincipal(principal) //
@@ -1054,7 +1054,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer applyForLoanApplicationWithPaymentStrategyAndPastMonth(final Integer clientID, final Integer loanProductID,
-                                                                           List<HashMap> charges, final String savingsId, String principal, final String repaymentStrategy, final int month) {
+            List<HashMap> charges, final String savingsId, String principal, final String repaymentStrategy, final int month) {
         LOG.info("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
 
         Calendar fourMonthsfromNowCalendar = Calendar.getInstance(Utils.getTimeZoneOfTenant());
@@ -4193,7 +4193,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private void testLoanScheduleWithInterestRecalculation_FOR_PRE_CLOSE_WITH_MORATORIUM(final String preCloseStrategy,
-                                                                                         final String preCloseAmount) {
+            final String preCloseAmount) {
         this.loanTransactionHelper = new LoanTransactionHelper(this.requestSpec, this.responseSpec);
 
         DateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy");
@@ -4261,7 +4261,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private void addRepaymentValues(List<Map<String, Object>> expectedvalues, Calendar todaysDate, int addPeriod, boolean isAddDays,
-                                    String principalDue, String interestDue, String feeChargesDue, String penaltyChargesDue) {
+            String principalDue, String interestDue, String feeChargesDue, String penaltyChargesDue) {
         Map<String, Object> values = new HashMap<>(3);
         if (isAddDays) {
             values.put("dueDate", getDateAsArray(todaysDate, addPeriod));
@@ -4287,10 +4287,10 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer createLoanProductWithInterestRecalculation(final String repaymentStrategy,
-                                                               final String interestRecalculationCompoundingMethod, final String rescheduleStrategyMethod,
-                                                               final String recalculationRestFrequencyType, final String recalculationRestFrequencyInterval,
-                                                               final String recalculationRestFrequencyDate, final String preCloseInterestCalculationStrategy, final Account[] accounts,
-                                                               final Integer recalculationRestFrequencyOnDayType, final Integer recalculationRestFrequencyDayOfWeekType) {
+            final String interestRecalculationCompoundingMethod, final String rescheduleStrategyMethod,
+            final String recalculationRestFrequencyType, final String recalculationRestFrequencyInterval,
+            final String recalculationRestFrequencyDate, final String preCloseInterestCalculationStrategy, final Account[] accounts,
+            final Integer recalculationRestFrequencyOnDayType, final Integer recalculationRestFrequencyDayOfWeekType) {
         final String recalculationCompoundingFrequencyType = null;
         final String recalculationCompoundingFrequencyInterval = null;
         final String recalculationCompoundingFrequencyDate = null;
@@ -4305,13 +4305,13 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer createLoanProductWithInterestRecalculationAndCompoundingDetails(final String repaymentStrategy,
-                                                                                    final String interestRecalculationCompoundingMethod, final String rescheduleStrategyMethod,
-                                                                                    final String recalculationRestFrequencyType, final String recalculationRestFrequencyInterval,
-                                                                                    final String recalculationRestFrequencyDate, final String recalculationCompoundingFrequencyType,
-                                                                                    final String recalculationCompoundingFrequencyInterval, final String recalculationCompoundingFrequencyDate,
-                                                                                    final String preCloseInterestCalculationStrategy, final Account[] accounts,
-                                                                                    final Integer recalculationCompoundingFrequencyOnDayType, final Integer recalculationCompoundingFrequencyDayOfWeekType,
-                                                                                    final Integer recalculationRestFrequencyOnDayType, final Integer recalculationRestFrequencyDayOfWeekType) {
+            final String interestRecalculationCompoundingMethod, final String rescheduleStrategyMethod,
+            final String recalculationRestFrequencyType, final String recalculationRestFrequencyInterval,
+            final String recalculationRestFrequencyDate, final String recalculationCompoundingFrequencyType,
+            final String recalculationCompoundingFrequencyInterval, final String recalculationCompoundingFrequencyDate,
+            final String preCloseInterestCalculationStrategy, final Account[] accounts,
+            final Integer recalculationCompoundingFrequencyOnDayType, final Integer recalculationCompoundingFrequencyDayOfWeekType,
+            final Integer recalculationRestFrequencyOnDayType, final Integer recalculationRestFrequencyDayOfWeekType) {
         return createLoanProductWithInterestRecalculation(repaymentStrategy, interestRecalculationCompoundingMethod,
                 rescheduleStrategyMethod, recalculationRestFrequencyType, recalculationRestFrequencyInterval,
                 recalculationRestFrequencyDate, recalculationCompoundingFrequencyType, recalculationCompoundingFrequencyInterval,
@@ -4321,14 +4321,14 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer createLoanProductWithInterestRecalculation(final String repaymentStrategy,
-                                                               final String interestRecalculationCompoundingMethod, final String rescheduleStrategyMethod,
-                                                               final String recalculationRestFrequencyType, final String recalculationRestFrequencyInterval,
-                                                               final String recalculationRestFrequencyDate, final String recalculationCompoundingFrequencyType,
-                                                               final String recalculationCompoundingFrequencyInterval, final String recalculationCompoundingFrequencyDate,
-                                                               final String preCloseInterestCalculationStrategy, final Account[] accounts, final String chargeId,
-                                                               boolean isArrearsBasedOnOriginalSchedule, final Integer recalculationCompoundingFrequencyOnDayType,
-                                                               final Integer recalculationCompoundingFrequencyDayOfWeekType, final Integer recalculationRestFrequencyOnDayType,
-                                                               final Integer recalculationRestFrequencyDayOfWeekType) {
+            final String interestRecalculationCompoundingMethod, final String rescheduleStrategyMethod,
+            final String recalculationRestFrequencyType, final String recalculationRestFrequencyInterval,
+            final String recalculationRestFrequencyDate, final String recalculationCompoundingFrequencyType,
+            final String recalculationCompoundingFrequencyInterval, final String recalculationCompoundingFrequencyDate,
+            final String preCloseInterestCalculationStrategy, final Account[] accounts, final String chargeId,
+            boolean isArrearsBasedOnOriginalSchedule, final Integer recalculationCompoundingFrequencyOnDayType,
+            final Integer recalculationCompoundingFrequencyDayOfWeekType, final Integer recalculationRestFrequencyOnDayType,
+            final Integer recalculationRestFrequencyDayOfWeekType) {
         LOG.info("------------------------------CREATING NEW LOAN PRODUCT ---------------------------------------");
         LoanProductTestBuilder builder = new LoanProductTestBuilder().withPrincipal("10000000.00").withNumberOfRepayments("24")
                 .withRepaymentAfterEvery("1").withRepaymentTypeAsWeek().withinterestRatePerPeriod("2")
@@ -4355,27 +4355,27 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer applyForLoanApplicationForInterestRecalculation(final Integer clientID, final Integer loanProductID,
-                                                                    final String disbursementDate, final String repaymentStrategy, final List<HashMap> charges) {
+            final String disbursementDate, final String repaymentStrategy, final List<HashMap> charges) {
         return applyForLoanApplicationForInterestRecalculation(clientID, loanProductID, disbursementDate, repaymentStrategy, charges, null,
                 null);
     }
 
     private Integer applyForLoanApplicationForInterestRecalculationWithMoratorium(final Integer clientID, final Integer loanProductID,
-                                                                                  final String disbursementDate, final String repaymentStrategy, final List<HashMap> charges, final String graceOnInterestPayment,
-                                                                                  final String graceOnPrincipalPayment) {
+            final String disbursementDate, final String repaymentStrategy, final List<HashMap> charges, final String graceOnInterestPayment,
+            final String graceOnPrincipalPayment) {
         return applyForLoanApplicationForInterestRecalculation(clientID, loanProductID, disbursementDate, repaymentStrategy, charges,
                 graceOnInterestPayment, graceOnPrincipalPayment);
     }
 
     private Integer applyForLoanApplicationForInterestRecalculation(final Integer clientID, final Integer loanProductID,
-                                                                    final String disbursementDate, final String compoundingStartDate, final String repaymentStrategy, final List<HashMap> charges) {
+            final String disbursementDate, final String compoundingStartDate, final String repaymentStrategy, final List<HashMap> charges) {
         return applyForLoanApplicationForInterestRecalculation(clientID, loanProductID, disbursementDate, repaymentStrategy, charges, null,
                 null);
     }
 
     private Integer applyForLoanApplicationForInterestRecalculation(final Integer clientID, final Integer loanProductID,
-                                                                    final String disbursementDate, final String repaymentStrategy, final List<HashMap> charges, final String graceOnInterestPayment,
-                                                                    final String graceOnPrincipalPayment) {
+            final String disbursementDate, final String repaymentStrategy, final List<HashMap> charges, final String graceOnInterestPayment,
+            final String graceOnPrincipalPayment) {
         LOG.info("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
         final String loanApplicationJSON = new LoanApplicationTestBuilder() //
                 .withPrincipal("10000.00") //
@@ -4991,7 +4991,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer createSavingsProduct(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
-                                         final String minOpenningBalance) {
+            final String minOpenningBalance) {
         LOG.info("------------------------------CREATING NEW SAVINGS PRODUCT ---------------------------------------");
         SavingsProductHelper savingsProductHelper = new SavingsProductHelper();
 
@@ -5123,7 +5123,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer applyForLoanApplicationWithProductConfigurationAsTrue(final Integer clientID, final Integer loanProductID,
-                                                                          String principal) {
+            String principal) {
         LOG.info("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
         final String loanApplicationJSON = new LoanApplicationTestBuilder() //
                 .withPrincipal(principal) //
@@ -5141,7 +5141,7 @@ public class ClientLoanIntegrationTest {
     }
 
     private Integer applyForLoanApplicationWithProductConfigurationAsFalse(final Integer clientID, final Integer loanProductID,
-                                                                           String principal) {
+            String principal) {
         LOG.info("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
         final String loanApplicationJSON = new LoanApplicationTestBuilder()
                 //
