@@ -351,6 +351,7 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
         worksheet.setColumnWidth(LoanConstants.CHARGE_DUE_DATE_2, TemplatePopulateImportConstants.MEDIUM_COL_SIZE);
         worksheet.setColumnWidth(LoanConstants.GROUP_ID, TemplatePopulateImportConstants.MEDIUM_COL_SIZE);
         worksheet.setColumnWidth(LoanConstants.LINK_ACCOUNT_ID, TemplatePopulateImportConstants.MEDIUM_COL_SIZE);
+        worksheet.setColumnWidth(LoanConstants.LOAN_ID_CLOSE_COL, TemplatePopulateImportConstants.MEDIUM_COL_SIZE);
 
         writeString(LoanConstants.OFFICE_NAME_COL, rowHeader, "Office Name*");
         writeString(LoanConstants.LOAN_TYPE_COL, rowHeader, "Loan Type*");
@@ -395,6 +396,7 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
         writeString(LoanConstants.CHARGE_DUE_DATE_2, rowHeader, "Charged On Date");
         writeString(LoanConstants.GROUP_ID, rowHeader, "GROUP ID");
         writeString(LoanConstants.LINK_ACCOUNT_ID, rowHeader, "Linked Account No.");
+        writeString(LoanConstants.LOAN_ID_CLOSE_COL, rowHeader, "LoanID to Close");
 
         CellStyle borderStyle = worksheet.getWorkbook().createCellStyle();
         CellStyle doubleBorderStyle = worksheet.getWorkbook().createCellStyle();
