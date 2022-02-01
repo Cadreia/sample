@@ -168,6 +168,9 @@ public class JournalEntriesApiResource {
         } else {
             final CommandWrapper commandRequest = new CommandWrapperBuilder().createJournalEntry().withJson(jsonRequestBody).build();
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+            System.out.println("-------- jl-entries ---------");
+            System.out.println(jsonRequestBody);
+            System.out.println("-------- jl-entries end ---------");
         }
         return this.apiJsonSerializerService.serialize(result);
     }

@@ -74,7 +74,6 @@ public class JournalEntryCommand {
         this.receiptNumber = receiptNumber;
         this.bankNumber = bankNumber;
         this.routingCode = routingCode;
-
     }
 
     public void validateForCreate() {
@@ -160,6 +159,8 @@ public class JournalEntryCommand {
     public SingleDebitOrCreditEntryCommand[] getDebits() {
         return this.debits;
     }
+
+
 
     public String getReferenceNumber() {
         return this.referenceNumber;
