@@ -29,7 +29,8 @@ public enum JournalEntryJsonInputParams {
     SAVINGSCREDITS("savingsCredits"), SAVINGSDEBITS("savingsDebits"), LOCALE("locale"), DATE_FORMAT("dateFormat"), 
     REFERENCE_NUMBER("referenceNumber"), USE_ACCOUNTING_RULE("useAccountingRule"), ACCOUNTING_RULE("accountingRule"), 
     AMOUNT("amount"), CURRENCY_CODE("currencyCode"), PAYMENT_TYPE_ID("paymentTypeId"), ACCOUNT_NUMBER("accountNumber"), 
-    CHECK_NUMBER("checkNumber"), ROUTING_CODE("routingCode"), RECEIPT_NUMBER("receiptNumber"), BANK_NUMBER("bankNumber");
+    CHECK_NUMBER("checkNumber"), ROUTING_CODE("routingCode"), RECEIPT_NUMBER("receiptNumber"), BANK_NUMBER("bankNumber"),
+    TRANSACTION_AMOUNT("transactionAmount"), IS_MANUAL_TRANSACTION("isManualTransaction");
 
     private final String value;
 

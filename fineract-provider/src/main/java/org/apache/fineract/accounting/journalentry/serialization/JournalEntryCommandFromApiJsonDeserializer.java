@@ -33,6 +33,7 @@ import org.apache.fineract.accounting.journalentry.service.AccountingProcessorHe
 import org.apache.fineract.accounting.journalentry.api.JournalEntryJsonInputParams;
 import org.apache.fineract.accounting.journalentry.command.JournalEntryCommand;
 import org.apache.fineract.accounting.journalentry.command.SingleDebitOrCreditEntryCommand;
+import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
 import org.apache.fineract.infrastructure.core.serialization.AbstractFromApiJsonDeserializer;
 import org.apache.fineract.infrastructure.core.serialization.FromApiJsonDeserializer;
@@ -65,6 +66,12 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
         this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
         this.accountingProcessorHelper = accountingProcessorHelper;
     }
+
+    // public JournalEntryCommand createJournalEntryCommand(final JsonCommand command) {
+    //     checkForMultiWithdrawal(command);
+    //     checkForMultiDeposit(command);
+    //     return commandFromApiJson(command.json());
+    // }
 
     @Override
     public JournalEntryCommand commandFromApiJson(final String json) {
@@ -124,11 +131,13 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
             if (credits.length == 0) {
                 if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSCREDITS.getValue())
                         && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSCREDITS.getValue()).isJsonArray()) {
+                    // multideposit(topLevelJsonElement);
                     credits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, credits, JournalEntryJsonInputParams.SAVINGSCREDITS.getValue());
                 }           
             } else {
                 if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSCREDITS.getValue())
                         && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSCREDITS.getValue()).isJsonArray()) {
+                    // multideposit(topLevelJsonElement);
                     savingsCredits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, credits, JournalEntryJsonInputParams.SAVINGSCREDITS.getValue());
                     credits = appendToArray(credits, savingsCredits);
                 }
@@ -142,13 +151,14 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
             if (debits.length == 0) {
                 if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue())
                         && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue()).isJsonArray()) {
+                    // multideposit(topLevelJsonElement);
                     debits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, debits, JournalEntryJsonInputParams.SAVINGSDEBITS.getValue());
                 }            
             } else {
                 if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue())
                         && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue()).isJsonArray()) {
+                    // multideposit(topLevelJsonElement);
                     savingsDebits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, debits, JournalEntryJsonInputParams.SAVINGSDEBITS.getValue());
-                    // debits.add(savingsDebits);
                     debits = appendToArray(debits, savingsDebits);
                 }
             }
@@ -184,22 +194,12 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
                 final Long savingsProductId = this.fromApiJsonHelper.extractLongNamed("savingsProductId", creditElement);
 
                 // get glAccountId to be credited for savingsAccountId
-                // final GLAccount linkedGLAccount = getLinkedGLAccountForSavingsProduct(savingsProductId, accountMappingTypeId, paymentTypeId);
-
-                System.out.println("linked gl");
-                System.out.println(this.savingsAccountReadPlatformService.retrieveOne(savingsAccountId).getId());
-                System.out.println(this.savingsAccountReadPlatformService.retrieveOne(savingsAccountId).getProductId());
-                System.out.println(CASH_ACCOUNTS_FOR_SAVINGS.SAVINGS_REFERENCE.getValue());
-                System.out.println(topLevelJsonElement.get("paymentTypeId"));
-                System.out.println(savingsProductId);
-                System.out.println("linked gl");
-
                 JsonElement paymentTypeId = topLevelJsonElement.get("paymentTypeId");
                 GLAccount linkedGLAccount = null;
                 if (paymentTypeId != null) {
-                    linkedGLAccount = this.accountingProcessorHelper.getLinkedGLAccountForSavingsProduct(savingsProductId, CASH_ACCOUNTS_FOR_SAVINGS.SAVINGS_REFERENCE.getValue(), paymentTypeId.getAsLong());
+                    linkedGLAccount = this.accountingProcessorHelper.getLinkedGLAccountForSavingsProduct(savingsProductId, CASH_ACCOUNTS_FOR_SAVINGS.SAVINGS_CONTROL.getValue(), paymentTypeId.getAsLong());
                 } else {
-                    linkedGLAccount = this.accountingProcessorHelper.getLinkedGLAccountForSavingsProduct(savingsProductId, CASH_ACCOUNTS_FOR_SAVINGS.SAVINGS_REFERENCE.getValue(), null);
+                    linkedGLAccount = this.accountingProcessorHelper.getLinkedGLAccountForSavingsProduct(savingsProductId, CASH_ACCOUNTS_FOR_SAVINGS.SAVINGS_CONTROL.getValue(), null);
                 }
                 glAccountId = linkedGLAccount.getId();
             } else {
@@ -219,4 +219,28 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
         }
         return initialArray;
     }
+
+    // private void multideposit(final JsonObject topLevelJsonElement, final JsonCommand command) {
+    //     /********* deposit *****************/
+    //     final JsonArray savingsCredits = topLevelJsonElement.get("savingsCredits").getAsJsonArray();
+    //     if (savingsCredits.size() > 0) {
+    //         for (int i = 0; i < savingsCredits.size(); i++) {
+    //             // make deposit for each
+    //             final JsonObject jsonObject = savingsCredits.get(i).getAsJsonObject();
+    //             this.savingsAccountWritePlatformService.deposit(jsonObject.get("savingsAccountId").getAsLong(), command);
+    //         }
+    //     }
+    // }
+
+    // private void multiwithdrawal(final JsonObject topLevelJsonElement, final JsonCommand command) {
+    //     /********* withdraw *****************/
+    //     final JsonArray savingsDebits = topLevelJsonElement.get("savingsDebits").getAsJsonArray();
+    //     if (savingsDebits.size() > 0) {
+    //         for (int i = 0; i < savingsDebits.size(); i++) {
+    //             // make withdrawal for each
+    //             final JsonObject jsonObject = savingsDebits.get(i).getAsJsonObject();
+    //             savingsAccountId = this.fromApiJsonHelper.extractLongNamed("savingsAccountId", jsonObject);
+    //             this.savingsAccountWritePlatformService.withdrawal(savingsAccountId, command);                }
+    //     }
+    // }
 }

@@ -114,6 +114,9 @@ import java.math.MathContext;
 import java.time.ZoneId;
 import java.util.*;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+
 import org.joda.time.MonthDay;
 
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.SAVINGS_ACCOUNT_CHARGE_RESOURCE_NAME;
@@ -282,6 +285,39 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
     @Transactional
     @Override
+    public CommandProcessingResult multideposit(final JsonCommand command) {
+        final Map<String, Object> changes = new LinkedHashMap<>();
+        final JsonArray savingsCredits = command.arrayOfParameterNamed("savingsCredits");
+        if (savingsCredits.size() > 0) {
+            for (int i = 0; i < savingsCredits.size(); i++) {
+                // make deposit for each savings account
+                final JsonElement savingsAccountId = savingsCredits.get(i).getAsJsonObject()
+                    .get("savingsAccountId");
+                final JsonElement transactionAmount = savingsCredits.get(i).getAsJsonObject()
+                    .get("amount");
+                if (savingsAccountId != null) {
+                    deposit(savingsAccountId.getAsLong(), command); 
+                }
+            }
+        }
+        final JsonArray savingsDebits = command.arrayOfParameterNamed("savingsDebits");
+        if (savingsDebits.size() > 0) {
+            for (int i = 0; i < savingsDebits.size(); i++) {
+                // make withdrawal for each savings account
+                final JsonElement savingsAccountId = savingsDebits.get(i).getAsJsonObject()
+                    .get("savingsAccountId");
+                final JsonElement transactionAmount = savingsDebits.get(i).getAsJsonObject()
+                    .get("amount");
+                if (savingsAccountId != null) {
+                    withdrawal(savingsAccountId.getAsLong(), command);                
+                }
+            }
+        }
+        return this.journalEntryWritePlatformService.createJournalEntry(command);
+    }
+
+    @Transactional
+    @Override
     public CommandProcessingResult deposit(final Long savingsId, final JsonCommand command) {
 
         this.context.authenticatedUser();
@@ -295,10 +331,10 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         final LocalDate transactionDate = command.localDateValueOfParameterNamed("transactionDate");
         final LocalDate postingDate = command.localDateValueOfParameterNamed("postingDate");
-        final BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
+        BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
         final String noteText = command.stringValueOfParameterNamed("note");
         final Long glAccountId = command.longValueOfParameterNamed("glAccountId");
-        
+        final JsonArray savingsCredits = command.arrayOfParameterNamed("savingsCredits");
         
         GLAccount glAccount = null;
         if (glAccountId != null) {
@@ -308,6 +344,18 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         final PaymentDetail paymentDetail = this.paymentDetailWritePlatformService.createAndPersistPaymentDetail(command, changes);
         boolean isAccountTransfer = false;
         boolean isRegularTransaction = true;
+
+        if (command.hasParameter("isManualTransaction")) {
+            isRegularTransaction = !command.booleanPrimitiveValueOfParameterNamed("isManualTransaction");
+        }
+        
+        if (savingsCredits != null && savingsCredits.size() > 0) {
+            for (int i = 0; i < savingsCredits.size(); i++) {
+                if (savingsCredits.get(i).getAsJsonObject().get("savingsAccountId").getAsLong() == savingsId) {
+                    transactionAmount = savingsCredits.get(i).getAsJsonObject().get("amount").getAsBigDecimal();
+                }
+            }
+        }
         final SavingsAccountTransaction deposit = this.savingsAccountDomainService.handleDeposit(account, fmt, transactionDate, postingDate,
                 transactionAmount, paymentDetail, isAccountTransfer, isRegularTransaction, glAccount, noteText);
 
@@ -375,10 +423,11 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         final LocalDate transactionDate = command.localDateValueOfParameterNamed("transactionDate");
         final LocalDate postingDate = command.localDateValueOfParameterNamed("postingDate");
         final Long glAccountId = command.longValueOfParameterNamed("glAccountId");
-        final BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
+        BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
         final String noteText = command.stringValueOfParameterNamed("note");
         final Locale locale = command.extractLocale();
         final DateTimeFormatter fmt = DateTimeFormat.forPattern(command.dateFormat()).withLocale(locale);
+        final JsonArray savingsDebits = command.arrayOfParameterNamed("savingsDebits");
 
         final Map<String, Object> changes = new LinkedHashMap<>();
         final PaymentDetail paymentDetail = this.paymentDetailWritePlatformService.createAndPersistPaymentDetail(command, changes);
@@ -389,14 +438,25 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         if (glAccountId != null) {
             glAccount = this.glAccountRepositoryWrapper.findOneWithNotFoundDetection(glAccountId);
         }
+        if (savingsDebits != null && savingsDebits.size() > 0) {
+            for (int i = 0; i < savingsDebits.size(); i++) {
+                if (savingsDebits.get(i).getAsJsonObject().get("savingsAccountId").getAsLong() == savingsId) {
+                    transactionAmount = savingsDebits.get(i).getAsJsonObject().get("amount").getAsBigDecimal();
+                }
+            }
+        }
 
         checkClientOrGroupActive(account);
         final boolean isAccountTransfer = false;
-        final boolean isRegularTransaction = true;
         final boolean isApplyWithdrawFee = true;
         final boolean isInterestTransfer = false;
         final boolean isWithdrawBalance = false;
         final boolean isApplyOverdraftFee = true;
+        boolean isRegularTransaction = true;
+
+        if (command.hasParameter("isManualTransaction")) {
+            isRegularTransaction = !command.booleanPrimitiveValueOfParameterNamed("isManualTransaction");
+        }
         final SavingsTransactionBooleanValues transactionBooleanValues = new SavingsTransactionBooleanValues(isAccountTransfer,
                 isRegularTransaction, isApplyWithdrawFee, isInterestTransfer, isWithdrawBalance, isApplyOverdraftFee);
 

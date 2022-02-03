@@ -1295,12 +1295,28 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder savingsAccountMultipleDeposits() {
+        this.actionName = "MULTIDEPOSIT";
+        this.entityName = "SAVINGSACCOUNT";
+        this.entityId = null;
+        this.href = "/savingsaccounts/transactions" + "?command=multideposit";
+        return this;
+    }
+
     public CommandWrapperBuilder savingsAccountWithdrawal(final Long accountId) {
         this.actionName = "WITHDRAWAL";
         this.entityName = "SAVINGSACCOUNT";
         this.savingsId = accountId;
         this.entityId = null;
         this.href = "/savingsaccounts/" + accountId + "/transactions";
+        return this;
+    }
+
+    public CommandWrapperBuilder savingsAccountMultipleWithdrawals() {
+        this.actionName = "MULTIWITHDRAWAL";
+        this.entityName = "SAVINGSACCOUNT";
+        this.entityId = null;
+        this.href = "/savingsaccounts/transactions" + "?command=multiwithdrawal";
         return this;
     }
 
