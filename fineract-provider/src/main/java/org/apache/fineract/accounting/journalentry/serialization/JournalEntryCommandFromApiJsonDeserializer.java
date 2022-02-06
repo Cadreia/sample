@@ -20,6 +20,7 @@ package org.apache.fineract.accounting.journalentry.serialization;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -66,12 +67,6 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
         this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
         this.accountingProcessorHelper = accountingProcessorHelper;
     }
-
-    // public JournalEntryCommand createJournalEntryCommand(final JsonCommand command) {
-    //     checkForMultiWithdrawal(command);
-    //     checkForMultiDeposit(command);
-    //     return commandFromApiJson(command.json());
-    // }
 
     @Override
     public JournalEntryCommand commandFromApiJson(final String json) {
@@ -143,11 +138,6 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
                 }
             }
 
-            System.out.println("after updating with savings credits.length");
-            System.out.println(credits.length);
-            System.out.println(debits.length);
-            System.out.println("after updating with savings credits.length");
-
             if (debits.length == 0) {
                 if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue())
                         && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue()).isJsonArray()) {
@@ -162,10 +152,6 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
                     debits = appendToArray(debits, savingsDebits);
                 }
             }
-            System.out.println("after updating with savings debits.length");
-            System.out.println(credits.length);
-            System.out.println(debits.length);
-            System.out.println("after updating with savings debits.length");
         }
         return new JournalEntryCommand(officeId, currencyCode, transactionDate, comments, credits, debits, referenceNumber,
                 accountingRuleId, amount, paymentTypeId, accountNumber, checkNumber, receiptNumber, bankNumber, routingCode);
@@ -214,33 +200,9 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
     private SingleDebitOrCreditEntryCommand[] appendToArray (SingleDebitOrCreditEntryCommand[] initialArray, final SingleDebitOrCreditEntryCommand[] arrayToAdd) {
         // initialArray = Arrays.copyOf(arr, arr.length + 1);
         for (int i = 0; i < arrayToAdd.length; i++) {
-            // initialArray[initialArray.length - 1] = arrayToAdd[i]
+            // initialArray[initialArray.length - 1] = arrayToAdd[i];
             initialArray = ArrayUtils.add(initialArray, arrayToAdd[i]);
         }
         return initialArray;
     }
-
-    // private void multideposit(final JsonObject topLevelJsonElement, final JsonCommand command) {
-    //     /********* deposit *****************/
-    //     final JsonArray savingsCredits = topLevelJsonElement.get("savingsCredits").getAsJsonArray();
-    //     if (savingsCredits.size() > 0) {
-    //         for (int i = 0; i < savingsCredits.size(); i++) {
-    //             // make deposit for each
-    //             final JsonObject jsonObject = savingsCredits.get(i).getAsJsonObject();
-    //             this.savingsAccountWritePlatformService.deposit(jsonObject.get("savingsAccountId").getAsLong(), command);
-    //         }
-    //     }
-    // }
-
-    // private void multiwithdrawal(final JsonObject topLevelJsonElement, final JsonCommand command) {
-    //     /********* withdraw *****************/
-    //     final JsonArray savingsDebits = topLevelJsonElement.get("savingsDebits").getAsJsonArray();
-    //     if (savingsDebits.size() > 0) {
-    //         for (int i = 0; i < savingsDebits.size(); i++) {
-    //             // make withdrawal for each
-    //             final JsonObject jsonObject = savingsDebits.get(i).getAsJsonObject();
-    //             savingsAccountId = this.fromApiJsonHelper.extractLongNamed("savingsAccountId", jsonObject);
-    //             this.savingsAccountWritePlatformService.withdrawal(savingsAccountId, command);                }
-    //     }
-    // }
 }

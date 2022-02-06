@@ -18,10 +18,13 @@
  */
 package org.apache.fineract.infrastructure.core.serialization;
 
+import java.util.Collection;
+
 /**
  * 
  */
 public interface FromApiJsonDeserializer<T> {
 
     T commandFromApiJson(final String json);
+
 }
