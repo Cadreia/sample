@@ -30,7 +30,7 @@ import java.util.Map;
 
 public interface JournalEntryWritePlatformService {
 
-	CommandProcessingResult createJournalEntry(JsonCommand command, ArrayList<Long> savingsTransactionId);
+	CommandProcessingResult createJournalEntry(JsonCommand command, ArrayList<Long> savingsCreditTransactionId, ArrayList<Long> savingsDebitTransactionId);
 
 	CommandProcessingResult revertJournalEntry(JsonCommand command);
 

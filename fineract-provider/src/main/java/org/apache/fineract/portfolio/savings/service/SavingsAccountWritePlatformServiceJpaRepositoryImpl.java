@@ -287,7 +287,8 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     @Override
     public CommandProcessingResult multideposit(final JsonCommand command) {
         final Map<String, Object> changes = new LinkedHashMap<>();
-        final ArrayList<Long> savingsTransactionId = new ArrayList<>();
+        final ArrayList<Long> savingsCreditTransactionId = new ArrayList<>();
+        final ArrayList<Long> savingsDebitTransactionId = new ArrayList<>();
 
         final JsonArray savingsCredits = command.arrayOfParameterNamed("savingsCredits");
         if (savingsCredits.size() > 0) {
@@ -299,7 +300,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                     .get("amount");
                 if (savingsAccountId != null) {
                     CommandProcessingResult deposit = deposit(savingsAccountId.getAsLong(), command);
-                    savingsTransactionId.add(deposit.resourceId());
+                    savingsCreditTransactionId.add(deposit.resourceId());
                 }
             }
         }
@@ -312,11 +313,12 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 final JsonElement transactionAmount = savingsDebits.get(i).getAsJsonObject()
                     .get("amount");
                 if (savingsAccountId != null) {
-                    withdrawal(savingsAccountId.getAsLong(), command);                
+                    CommandProcessingResult withdrawal = withdrawal(savingsAccountId.getAsLong(), command);
+                    savingsDebitTransactionId.add(withdrawal.resourceId());                
                 }
             }
         }
-        return this.journalEntryWritePlatformService.createJournalEntry(command, savingsTransactionId);
+        return this.journalEntryWritePlatformService.createJournalEntry(command, savingsCreditTransactionId, savingsDebitTransactionId);
     }
 
     @Transactional

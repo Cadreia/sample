@@ -149,7 +149,7 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
 
     @Transactional
     @Override
-    public CommandProcessingResult createJournalEntry(final JsonCommand command, final ArrayList<Long> savingsTransactionId) {
+    public CommandProcessingResult createJournalEntry(final JsonCommand command, final ArrayList<Long> savingsCreditTransactionId, final ArrayList<Long> savingsDebitTransactionId) {
         try {
             final JournalEntryCommand journalEntryCommand = this.fromApiJsonDeserializer.commandFromApiJson(command.json());
             journalEntryCommand.validateForCreate();
@@ -173,7 +173,13 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
 
             final JsonArray savingsCredits = command.arrayOfParameterNamed("savingsCredits");
             if (savingsCredits.size() > 0) {
-                addSavingsTransactionId(journalEntryCommand.getCredits(), savingsTransactionId);
+                addSavingsTransactionId(journalEntryCommand.getCredits(), savingsCreditTransactionId);
+            }
+
+
+            final JsonArray savingsDebits = command.arrayOfParameterNamed("savingsDebits");
+            if (savingsDebits.size() > 0) {
+                addSavingsTransactionId(journalEntryCommand.getDebits(), savingsDebitTransactionId);
             }
 
             if (accountRuleId != null) {

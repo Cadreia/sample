@@ -42,6 +42,6 @@ public class CreateJournalEntryCommandHandler implements NewCommandSourceHandler
     @Override
     public CommandProcessingResult processCommand(final JsonCommand command) {
 
-        return this.writePlatformService.createJournalEntry(command, null);
+        return this.writePlatformService.createJournalEntry(command, null, null);
     }
 }
