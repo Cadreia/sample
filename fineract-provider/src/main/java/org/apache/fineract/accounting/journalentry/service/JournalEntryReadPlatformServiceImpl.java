@@ -166,8 +166,8 @@ public class JournalEntryReadPlatformServiceImpl implements JournalEntryReadPlat
             final int entryTypeId = JdbcSupport.getInteger(rs, "entryType");
             final EnumOptionData entryType = AccountingEnumerations.journalEntryType(entryTypeId);
             final String transactionId = rs.getString("transactionId");
-            final Long savingsTransactionId = rs.getLong("savingsTransactionId");
-            final Long savingsAccountId = rs.getLong("savingsAccountId");
+            Long savingsTransactionId = null;
+            Long savingsAccountId = null;
             final Integer entityTypeId = JdbcSupport.getInteger(rs, "entityType");
             EnumOptionData entityType = null;
             if (entityTypeId != null) {
@@ -202,7 +202,7 @@ public class JournalEntryReadPlatformServiceImpl implements JournalEntryReadPlat
             }
             TransactionDetailData transactionDetailData = null;
 
-            if (associationParametersData.isTransactionDetailsRequired()) {
+            if (associationParametersData.isTransactionDetailsRequired()) {                
                 PaymentDetailData paymentDetailData = null;
                 final Long paymentTypeId = JdbcSupport.getLong(rs, "paymentTypeId");
                 if (paymentTypeId != null) {
@@ -235,6 +235,9 @@ public class JournalEntryReadPlatformServiceImpl implements JournalEntryReadPlat
                     transactionTypeEnumData = new TransactionTypeEnumData(loanTransactionType.id(), loanTransactionType.getCode(),
                             loanTransactionType.getValue());
                 } else if (PortfolioAccountType.fromInt(entityTypeId).isSavingsAccount()) {
+                    savingsTransactionId = rs.getLong("savingsTransactionId");
+                    savingsAccountId = rs.getLong("savingsAccountId");
+
                     final SavingsAccountTransactionEnumData savingsTransactionType = SavingsEnumerations.transactionType(JdbcSupport
                             .getInteger(rs, "savingsTransactionType"));
                     transactionTypeEnumData = new TransactionTypeEnumData(savingsTransactionType.getId(), savingsTransactionType.getCode(),
