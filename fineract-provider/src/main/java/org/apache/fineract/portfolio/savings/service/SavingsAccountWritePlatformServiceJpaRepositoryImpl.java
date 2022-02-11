@@ -629,16 +629,17 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         // final ArrayList<Long> savingsTransactionsId = new ArrayList<>();
         List<JournalEntryData> jlEntries = this.journalEntryReadPlatformService.retrieveJournalEntriesByTransactionId(transactionId).getPageItems();
+        System.out.println(jlEntries.size());
         for (JournalEntryData entry : jlEntries) {
-            System.out.println("---------print jlentrydata---------");
-            System.out.println(entry.getTransactionId());
-            System.out.println(entry.getAmount());
-            System.out.println(entry.getSavingsTransactionId());
-            System.out.println(entry.getSavingsAccountId());
-            System.out.println("---------end print jlentrydata---------");
-            
             // savingsTransactionsId.add(entry.getSavingsTransactionId());
-            if (entry.getSavingsAccountId() > 0) {
+            if (entry.getSavingsAccountId() != null && entry.getSavingsAccountId() > 0) {
+                System.out.println("---------print jlentrydata---------");
+                System.out.println(entry);
+                System.out.println(entry.getTransactionId());
+                System.out.println(entry.getAmount());
+                System.out.println(entry.getSavingsTransactionId());
+                System.out.println(entry.getSavingsAccountId());
+                System.out.println("---------end print jlentrydata---------");
                 undoTransaction(entry.getSavingsAccountId(), entry.getSavingsTransactionId(), false);
             }
         }

@@ -692,15 +692,19 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
             /** Validate current code is appropriate **/
             this.organisationCurrencyRepository.findOneWithNotFoundDetection(currencyCode);
 
+            Integer entityType = null;
+            Long entityId = null;
             SavingsAccountTransaction savingsAccountTransaction = null;
             final ClientTransaction clientTransaction = null;
             final Long shareTransactionId = null;
 
             if(singleDebitOrCreditEntryCommand.getSavingsTransactionId() != null) {
+                entityType = PortfolioProductType.SAVING.getValue();
                 savingsAccountTransaction = this.savingsAccountTransactionRepository.findOne(singleDebitOrCreditEntryCommand.getSavingsTransactionId());
+                // entityId = savingsAccountTransaction.getSavingsAccount().getId();
             }
             final JournalEntry glJournalEntry = JournalEntry.createNew(office, paymentDetail, glAccount, currencyCode, transactionId,
-                    manualEntry, transactionDate, type, singleDebitOrCreditEntryCommand.getAmount(), comments, null, null, referenceNumber,
+                    manualEntry, transactionDate, type, singleDebitOrCreditEntryCommand.getAmount(), comments, entityType, entityId, referenceNumber,
                     null, savingsAccountTransaction, clientTransaction, shareTransactionId);
             this.glJournalEntryRepository.saveAndFlush(glJournalEntry);
         }

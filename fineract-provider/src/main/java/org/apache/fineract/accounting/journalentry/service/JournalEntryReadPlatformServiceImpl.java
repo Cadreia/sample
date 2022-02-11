@@ -141,7 +141,7 @@ public class JournalEntryReadPlatformServiceImpl implements JournalEntryReadPlat
             if (associationParametersData.isTransactionDetailsRequired()) {
                 sb.append(" left join m_loan_transaction as lt on journalEntry.loan_transaction_id = lt.id ")
                         .append(" left join m_savings_account_transaction as st on journalEntry.savings_transaction_id = st.id ")
-                        .append(" left join m_payment_detail as pd on lt.payment_detail_id = pd.id or st.payment_detail_id = pd.id or journalEntry.payment_details_id = pd.id")
+                        .append(" left join m_payment_detail as pd on lt.payment_detail_id = pd.id or journalEntry.payment_details_id = pd.id")
                         .append(" left join m_payment_type as pt on pt.id = pd.payment_type_id ")
                         .append(" left join m_note as note on lt.id = note.loan_transaction_id or st.id = note.savings_account_transaction_id ");
             }
@@ -223,11 +223,16 @@ public class JournalEntryReadPlatformServiceImpl implements JournalEntryReadPlat
                     noteData = new NoteData(noteId, null, null, null, null, null, null, null, note, null, null, null, null, null, null);
                 }
                 Long transaction = null;
-                if (entityType != null) {
+                if (entityType != null && entityId != null) {
                     transaction = Long.parseLong(transactionId.substring(1).trim());
                 }
 
                 TransactionTypeEnumData transactionTypeEnumData = null;
+
+                System.out.println("----------checking is savings acc-----");
+                System.out.println(entityTypeId);
+                System.out.println(PortfolioAccountType.fromInt(entityTypeId).isSavingsAccount());
+                System.out.println("----------checking is savings acc end-----");
 
                 if (PortfolioAccountType.fromInt(entityTypeId).isLoanAccount()) {
                     final LoanTransactionEnumData loanTransactionType = LoanEnumerations.transactionType(JdbcSupport.getInteger(rs,
@@ -249,8 +254,14 @@ public class JournalEntryReadPlatformServiceImpl implements JournalEntryReadPlat
             System.out.println("----------checking retrieved savings-----");
             System.out.println(savingsTransactionId);
             System.out.println(savingsAccountId);
+            System.out.println(associationParametersData.isTransactionDetailsRequired());
             System.out.println("----------end checking retrieved savings-----");
-            return new JournalEntryData(id, officeId, officeName, glAccountName, glAccountId, glCode, accountType, transactionDate,
+
+            System.out.println("----------this is final entity type-----");
+                System.out.println(entityTypeId);
+                System.out.println(PortfolioAccountType.fromInt(entityTypeId).isSavingsAccount());
+                System.out.println("----------this is final entity type end-----");
+                return new JournalEntryData(id, officeId, officeName, glAccountName, glAccountId, glCode, accountType, transactionDate,
                     entryType, amount, transactionId, manualEntry, entityType, entityId, createdByUserId, createdDate, createdByUserName,
                     comments, reversed, referenceNumber, officeRunningBalance, organizationRunningBalance, runningBalanceComputed,
                     transactionDetailData, currency, savingsTransactionId, savingsAccountId);
@@ -558,6 +569,10 @@ public class JournalEntryReadPlatformServiceImpl implements JournalEntryReadPlat
             final String sql = "select " + rm.schema() + " where journalEntry.transaction_id = ?";
             final String sqlCountRows = "SELECT FOUND_ROWS()";
             Object[] data = {transactionId};
+            System.out.println("retrieveJournalEntriesByTransactionId");
+            System.out.println(sql);
+            System.out.println(data);
+            System.out.println("end retrieveJournalEntriesByTransactionId");
             return this.paginationHelper.fetchPage(this.jdbcTemplate, sqlCountRows, sql, data, rm);
         } catch (final EmptyResultDataAccessException e) {
             throw new JournalEntriesNotFoundException(transactionId);
