@@ -244,8 +244,13 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
 
     private void addSavingsTransactionId(SingleDebitOrCreditEntryCommand[] debitOrCredits,
             final ArrayList<Long> savingsTransactionId) {
+        Integer elementIndx = 0;
         for (int i = 0; i < debitOrCredits.length; i++) {
-            debitOrCredits[i].updateSavingsTransactionId(savingsTransactionId.get(i));
+            System.out.println(debitOrCredits[i].isSavings());
+            if (debitOrCredits[i].isSavings()) {
+                debitOrCredits[i].updateSavingsTransactionId(savingsTransactionId.get(elementIndx));
+                elementIndx = elementIndx + 1;
+            }
         }
     }
 

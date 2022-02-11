@@ -172,12 +172,14 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
             final Set<String> parametersPassedInForCreditsCommand = new HashSet<>();
 
             Long glAccountId = null;
+            Boolean isSavings = false;
             final String comments = this.fromApiJsonHelper.extractStringNamed("comments", creditElement);
             final BigDecimal amount = this.fromApiJsonHelper.extractBigDecimalNamed("amount", creditElement, locale);
 
             if (creditElement.has("savingsAccountId")) {
                 final Long savingsAccountId = this.fromApiJsonHelper.extractLongNamed("savingsAccountId", creditElement);
                 final Long savingsProductId = this.fromApiJsonHelper.extractLongNamed("savingsProductId", creditElement);
+                isSavings = true;
 
                 // get glAccountId to be credited for savingsAccountId
                 JsonElement paymentTypeId = topLevelJsonElement.get("paymentTypeId");
@@ -192,7 +194,7 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
                 glAccountId = this.fromApiJsonHelper.extractLongNamed("glAccountId", creditElement);
             }
 
-            debitOrCredits[i] = new SingleDebitOrCreditEntryCommand(parametersPassedInForCreditsCommand, glAccountId, amount, comments);
+            debitOrCredits[i] = new SingleDebitOrCreditEntryCommand(parametersPassedInForCreditsCommand, glAccountId, amount, comments, isSavings);
         }
         return debitOrCredits;
     }
