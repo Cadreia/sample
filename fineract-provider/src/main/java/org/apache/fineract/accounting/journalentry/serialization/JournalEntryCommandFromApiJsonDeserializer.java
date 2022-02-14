@@ -20,19 +20,26 @@ package org.apache.fineract.accounting.journalentry.serialization;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.fineract.accounting.common.AccountingConstants.CASH_ACCOUNTS_FOR_SAVINGS;
+import org.apache.fineract.accounting.glaccount.domain.GLAccount;
+import org.apache.fineract.accounting.journalentry.service.AccountingProcessorHelper;
 import org.apache.fineract.accounting.journalentry.api.JournalEntryJsonInputParams;
 import org.apache.fineract.accounting.journalentry.command.JournalEntryCommand;
 import org.apache.fineract.accounting.journalentry.command.SingleDebitOrCreditEntryCommand;
+import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
 import org.apache.fineract.infrastructure.core.serialization.AbstractFromApiJsonDeserializer;
 import org.apache.fineract.infrastructure.core.serialization.FromApiJsonDeserializer;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
+import org.apache.fineract.portfolio.savings.service.SavingsAccountReadPlatformService;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,10 +57,15 @@ import com.google.gson.reflect.TypeToken;
 public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFromApiJsonDeserializer<JournalEntryCommand> {
 
     private final FromJsonHelper fromApiJsonHelper;
+    private final SavingsAccountReadPlatformService savingsAccountReadPlatformService;
+    private final AccountingProcessorHelper accountingProcessorHelper;
 
     @Autowired
-    public JournalEntryCommandFromApiJsonDeserializer(final FromJsonHelper fromApiJsonfromApiJsonHelper) {
+    public JournalEntryCommandFromApiJsonDeserializer(final FromJsonHelper fromApiJsonfromApiJsonHelper, 
+    final SavingsAccountReadPlatformService savingsAccountReadPlatformService, final AccountingProcessorHelper accountingProcessorHelper) {
         this.fromApiJsonHelper = fromApiJsonfromApiJsonHelper;
+        this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
+        this.accountingProcessorHelper = accountingProcessorHelper;
     }
 
     @Override
@@ -92,14 +104,53 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
 
         SingleDebitOrCreditEntryCommand[] credits = null;
         SingleDebitOrCreditEntryCommand[] debits = null;
+        SingleDebitOrCreditEntryCommand[] savingsCredits = null;
+        SingleDebitOrCreditEntryCommand[] savingsDebits = null;
+
         if (element.isJsonObject()) {
             if (topLevelJsonElement.has(JournalEntryJsonInputParams.CREDITS.getValue())
                     && topLevelJsonElement.get(JournalEntryJsonInputParams.CREDITS.getValue()).isJsonArray()) {
-                credits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, credits, JournalEntryJsonInputParams.CREDITS.getValue());
-            }
+                credits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, credits, JournalEntryJsonInputParams.CREDITS.getValue());           
+            } 
+
             if (topLevelJsonElement.has(JournalEntryJsonInputParams.DEBITS.getValue())
                     && topLevelJsonElement.get(JournalEntryJsonInputParams.DEBITS.getValue()).isJsonArray()) {
                 debits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, debits, JournalEntryJsonInputParams.DEBITS.getValue());
+            }
+
+            System.out.println("credits.length");
+            System.out.println(credits.length);
+            System.out.println(debits.length);
+            System.out.println("debits.length");
+
+            if (credits.length == 0) {
+                if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSCREDITS.getValue())
+                        && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSCREDITS.getValue()).isJsonArray()) {
+                    // multideposit(topLevelJsonElement);
+                    credits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, credits, JournalEntryJsonInputParams.SAVINGSCREDITS.getValue());
+                }           
+            } else {
+                if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSCREDITS.getValue())
+                        && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSCREDITS.getValue()).isJsonArray()) {
+                    // multideposit(topLevelJsonElement);
+                    savingsCredits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, credits, JournalEntryJsonInputParams.SAVINGSCREDITS.getValue());
+                    credits = appendToArray(credits, savingsCredits);
+                }
+            }
+
+            if (debits.length == 0) {
+                if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue())
+                        && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue()).isJsonArray()) {
+                    // multideposit(topLevelJsonElement);
+                    debits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, debits, JournalEntryJsonInputParams.SAVINGSDEBITS.getValue());
+                }            
+            } else {
+                if (topLevelJsonElement.has(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue())
+                        && topLevelJsonElement.get(JournalEntryJsonInputParams.SAVINGSDEBITS.getValue()).isJsonArray()) {
+                    // multideposit(topLevelJsonElement);
+                    savingsDebits = populateCreditsOrDebitsArray(topLevelJsonElement, locale, debits, JournalEntryJsonInputParams.SAVINGSDEBITS.getValue());
+                    debits = appendToArray(debits, savingsDebits);
+                }
             }
         }
         return new JournalEntryCommand(officeId, currencyCode, transactionDate, comments, credits, debits, referenceNumber,
@@ -120,12 +171,40 @@ public final class JournalEntryCommandFromApiJsonDeserializer extends AbstractFr
             final JsonObject creditElement = array.get(i).getAsJsonObject();
             final Set<String> parametersPassedInForCreditsCommand = new HashSet<>();
 
-            final Long glAccountId = this.fromApiJsonHelper.extractLongNamed("glAccountId", creditElement);
+            Long glAccountId = null;
+            Boolean isSavings = false;
             final String comments = this.fromApiJsonHelper.extractStringNamed("comments", creditElement);
             final BigDecimal amount = this.fromApiJsonHelper.extractBigDecimalNamed("amount", creditElement, locale);
 
-            debitOrCredits[i] = new SingleDebitOrCreditEntryCommand(parametersPassedInForCreditsCommand, glAccountId, amount, comments);
+            if (creditElement.has("savingsAccountId")) {
+                final Long savingsAccountId = this.fromApiJsonHelper.extractLongNamed("savingsAccountId", creditElement);
+                final Long savingsProductId = this.fromApiJsonHelper.extractLongNamed("savingsProductId", creditElement);
+                isSavings = true;
+
+                // get glAccountId to be credited for savingsAccountId
+                JsonElement paymentTypeId = topLevelJsonElement.get("paymentTypeId");
+                GLAccount linkedGLAccount = null;
+                if (paymentTypeId != null) {
+                    linkedGLAccount = this.accountingProcessorHelper.getLinkedGLAccountForSavingsProduct(savingsProductId, CASH_ACCOUNTS_FOR_SAVINGS.SAVINGS_CONTROL.getValue(), paymentTypeId.getAsLong());
+                } else {
+                    linkedGLAccount = this.accountingProcessorHelper.getLinkedGLAccountForSavingsProduct(savingsProductId, CASH_ACCOUNTS_FOR_SAVINGS.SAVINGS_CONTROL.getValue(), null);
+                }
+                glAccountId = linkedGLAccount.getId();
+            } else {
+                glAccountId = this.fromApiJsonHelper.extractLongNamed("glAccountId", creditElement);
+            }
+
+            debitOrCredits[i] = new SingleDebitOrCreditEntryCommand(parametersPassedInForCreditsCommand, glAccountId, amount, comments, isSavings);
         }
         return debitOrCredits;
+    }
+
+    private SingleDebitOrCreditEntryCommand[] appendToArray (SingleDebitOrCreditEntryCommand[] initialArray, final SingleDebitOrCreditEntryCommand[] arrayToAdd) {
+        // initialArray = Arrays.copyOf(arr, arr.length + 1);
+        for (int i = 0; i < arrayToAdd.length; i++) {
+            // initialArray[initialArray.length - 1] = arrayToAdd[i];
+            initialArray = ArrayUtils.add(initialArray, arrayToAdd[i]);
+        }
+        return initialArray;
     }
 }

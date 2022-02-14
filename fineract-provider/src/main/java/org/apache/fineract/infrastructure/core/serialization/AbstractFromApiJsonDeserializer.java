@@ -18,6 +18,8 @@
  */
 package org.apache.fineract.infrastructure.core.serialization;
 
+import java.util.Collection;
+
 /**
  * Abstract implementation of {@link FromApiJsonDeserializer} that can be
  * extended for specific commands.
@@ -26,4 +28,5 @@ public abstract class AbstractFromApiJsonDeserializer<T> implements FromApiJsonD
 
     @Override
     public abstract T commandFromApiJson(final String json);
+    
 }
